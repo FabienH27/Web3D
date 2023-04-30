@@ -1,23 +1,67 @@
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+import { camera, renderer } from './setup';
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+let bones: any = [];
+let betaAnim = 0;
 
-const geometry = new THREE.BoxGeometry(1, 1, 1);
-const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+//Model
+const loader = new GLTFLoader().setPath('/models/gltf/');
+loader.load('Tentacule.glb', function (gltf) {
+    const cube = gltf.scene;
+    scene.add(cube);
 
-camera.position.z = 5;
+    let object = cube.getObjectByName("Bone");
+    bones.push(object);
+    let children = object?.children!;
+
+    while (!(object === undefined || children?.length == 0)) {
+        bones.push(children[0]);
+        children = children[0].children;
+    }
+
+    animate();
+});
+
 
 function animate() {
+    betaAnim += 0.01;
     requestAnimationFrame(animate);
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+    let changeposition = 0;
+    bones.forEach((bone: BoneType) => {
+        changeposition += 10 * (Math.PI / 35)
+        bone.position.x = 0.3 * Math.sin((changeposition) + betaAnim);
+        bone.rotation.z = 0.2 * Math.sin((changeposition) + betaAnim);
+    });
     renderer.render(scene, camera);
 }
+
+function render() {
+    renderer.render(scene, camera);
+}
+
+function init() {
+    new THREE.TextureLoader()
+        .load('/textures/equirectangular/env.jpg', function (texture) {
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+
+            scene.background = texture;
+            scene.environment = texture;
+
+            render();
+        });
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.addEventListener('change', render); // use if there is no animation loop
+    controls.minDistance = 2;
+    controls.maxDistance = 30;
+    controls.target.set(0, 0, - 0.2);
+    controls.update();
+}
+
+init();
 animate();
