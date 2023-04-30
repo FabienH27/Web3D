@@ -15,5 +15,13 @@
   "bugs": {
     "url": "https://github.com/FabienH27/Web3D/issues"
   },
-  "homepage": "https://github.com/FabienH27/Web3D#readme"
+  "homepage": "https://github.com/FabienH27/Web3D#readme",
+  "dependencies": {
+    "three": "^0.152.2"
+  },
+  "devDependencies": {
+    "@types/three": "^0.151.0",
+    "typescript": "^5.0.4",
+    "vite": "^4.3.3"
+  }
 }
