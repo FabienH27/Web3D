@@ -12,13 +12,12 @@ document.body.appendChild(renderer.domElement);
 
 const fov = 60;
 const ratio = window.innerWidth / window.innerHeight;
-const znear = 0.25;
+const znear = 0.1;
 const zfar = 100;
 
 export const scene = new THREE.Scene();
 export const camera = new THREE.PerspectiveCamera(fov, ratio, znear, zfar);
-camera.position.set(- 1.8, 0.6, 1000);
-
+camera.position.set(- 1.8, 200, 1000);
 
 export function render() {
     renderer.render(scene, camera);
@@ -27,7 +26,7 @@ export function render() {
 export function addControls(){
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.addEventListener('change', render); // use if there is no animation loop
-    controls.minDistance = 2;
+    controls.minDistance = -50;
     controls.maxDistance = 30;
     controls.target.set(0, 0, - 0.2);
     controls.update();

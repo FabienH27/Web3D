@@ -4,7 +4,12 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 import { addControls, addEnvironment, camera, render, renderer, scene } from './setup';
 
-let bones: any = [];
+let bones = new Map<string, Array<THREE.Object3D | undefined>>();
+
+for (let i = 0; i < 8; i++) {
+    bones.set('bone' + (i + 1), []);
+}
+
 let betaAnim = 0;
 
 window.addEventListener('resize', onWindowResize);
@@ -12,14 +17,11 @@ window.addEventListener('resize', onWindowResize);
 function init() {
 
     addEnvironment();
-
-    // Model
-    for (let index = 0; index < 8; index++) {
-        addModel(index);
-    }
-    // addModel();
+    addModel(0);
 
     addControls();
+
+    animate();
 }
 
 function onWindowResize() {
@@ -28,52 +30,56 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 
     renderer.setSize(window.innerWidth, window.innerHeight);
-    animate();
 }
 
 function addModel(index: number) {
     const loader = new GLTFLoader().setPath('/models/gltf/');
-    loader.load('Tentacule.glb', function (gltf) {
-        const cube = gltf.scene;
-        const angle = index * Math.PI * 2 / 8;
-        const radius = 5;
-        cube.position.set(Math.cos(angle) * radius, cube.position.y, Math.sin(angle) * radius);
-        cube.rotateY(angle * -1);
-        scene.add(cube);
 
-        let object = cube.getObjectByName("Bone");
-        bones.push(object);
-        let children = object?.children!;
+    loader.load('Octopus.glb', function (gltf) {
+        const octopus = gltf.scene;
+        octopus.position.y += 4;
+        octopus.scale.multiplyScalar(0.8);
+        
+        scene.add(octopus);
 
-        while (!(object === undefined || children?.length == 0)) {
-            bones.push(children[0]);
-            children = children[0].children;
+        for (let i = 0; i < 8; i++) {
+            const index = i + 1;
+            let tentacle = octopus.getObjectByName("Tent" + index);
+            bones.get("bone" + index)?.push(tentacle);
+            let children = tentacle?.children!;
+
+            while (!(tentacle === undefined || children?.length == 0)) {
+                bones.get("bone" + index)?.push(children[0]);
+                children = children[0].children;
+            }
         }
 
-        animate();
     });
-
-    loader.load('Octopus_head.glb', function(gltf){
-        const head = gltf.scene;
-        const scale = 1.4;
-        head.scale.set(scale, scale, scale);
-        scene.add(head);
-    })
-
 }
 
 function animate() {
-    betaAnim += 0.01;
+    betaAnim += 0.05;
     requestAnimationFrame(animate);
-    let changeposition = 0;
-    bones.forEach((bone: BoneType) => {
-        changeposition += 10 * (Math.PI / 45)
-        bone.position.x = 0.2 * Math.sin((changeposition) + betaAnim);
-        bone.rotation.z = 0.2 * Math.sin((changeposition) + betaAnim);
+    
+    let index = 1;
+    bones.forEach((tentacle) => {
+        let changeposition = 0;
+        tentacle.forEach(bone => {
+            changeposition += 10 * (Math.PI / 30);            
+            bone!.position.z = 0.2 *  Math.sin((changeposition) + betaAnim);
+        });
+        index++;
     });
+
+    const head = scene.getObjectByName('top_head');
+    
+    if(head !== undefined){
+        head!.position.x = 0.4 * Math.sin(betaAnim);
+        head!.position.z = 0.4 * Math.sin(betaAnim);
+    }
+
     renderer.render(scene, camera);
 }
-
 
 
 init();
