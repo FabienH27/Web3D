@@ -1,28 +1,20 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-import { addControls, addEnvironment, camera, render, renderer, scene } from '../setup';
+import { addControls, addEnvironment, camera, renderer, scene } from '../setup';
 
 const raycaster = new THREE.Raycaster();
 
-const factor = 5;
+const factor = 0.1;
 
-let suzannes: THREE.Mesh[] = [];
+interface Suzanne extends THREE.Mesh {
+    speed: THREE.Vector3;
+}
 
-let speeds: number[] = [];
-let dirs: number[] = [];
-let suzanneBoxes: THREE.Box3[] = [];
-
-
-
-let cubesList: THREE.Mesh[] = [];
-let cubeBBox: THREE.Box3[] = [];
-
-
+let suzannes: Suzanne[] = [];
 
 window.addEventListener('resize', onWindowResize);
-window.addEventListener( 'pointermove', setPickPosition );
+window.addEventListener('pointermove', setPickPosition);
 
 function init() {
 
@@ -30,12 +22,13 @@ function init() {
 
     addControls();
 
-    for (let index = 0; index < 10; index++) {
-        // addCube(Math.random() * factor, Math.random() * factor, Math.random() * factor);
-        addSuzanne(Math.random() * factor, Math.random() * factor, Math.random() * factor);
-        speeds.push(Math.random());
-        dirs.push(Math.ceil(Math.random()) * (Math.round(Math.random()) ? 1 : -1));
+    for (let index = 0; index < 50; index++) {
+        addSuzanne(Math.random(), Math.random(), Math.random());
     }
+
+    const area = new THREE.Mesh(new THREE.BoxGeometry(22,22,22));
+
+    scene.add(new THREE.BoxHelper(area, 0xffff00))
 
     animate();
 
@@ -52,53 +45,40 @@ function onWindowResize() {
 function animate() {
     requestAnimationFrame(animate);
 
-    for(let i = 0; i < suzannes.length; i++) {
-        let isIntersecting = false;
-        for(let j = i; j < suzannes.length && !isIntersecting; j++) {
-            if(i != j) {
-                if(suzanneBoxes[i].intersectsBox(suzanneBoxes[j])){
-                    isIntersecting = true;
-                    //TODO
-                    dirs[i] = dirs[i] * -1;
-                    suzanneBoxes[i].setFromObject(suzannes[i]);
-                }
+    updateSuzannes();
+
+    for (let i = 0; i < suzannes.length; i++) {
+        const cubeA: Suzanne = suzannes[i];
+        for (let j = i + 1; j < suzannes.length; j++) {
+            const cubeB: Suzanne = suzannes[j];
+            const boxA: THREE.Box3 = new THREE.Box3().setFromObject(cubeA);
+            const boxB: THREE.Box3 = new THREE.Box3().setFromObject(cubeB);
+            if (boxA.intersectsBox(boxB)) {
+                cubeA.speed.multiplyScalar(-1);
+                cubeB.speed.multiplyScalar(-1);
             }
         }
-        let velocity = (speeds[i] + 0.05) * dirs[i] / 10;
-        suzannes[i].position.add(new THREE.Vector3(velocity, 0, velocity));
-
-        if(suzannes[i].position.x > 10 || suzannes[i].position.x < -10){
-            dirs[i] = dirs[i] * -1;
-        }
-
-        if(suzannes[i].position.z > 10 || suzannes[i].position.z < -10){
-            dirs[i] = dirs[i] * -1;
-        }
     }
-    
 
     renderer.render(scene, camera);
 }
 
-init();
-
-function addCube(px: number, py: number, pz: number) {
-    var colorandom = new THREE.Color(0xffffff);
-    colorandom.setHex(Math.random() * 0xffffff);
-    var geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5); //x,y,z
-    var boxMaterial = new THREE.MeshBasicMaterial({ color: colorandom });
-    var cube = new THREE.Mesh(geometry, boxMaterial);
-
-    cube.position.set(px * 2, py * 2, pz * 2);
-    cube.geometry.computeBoundingBox(); // null sinon
-    scene.add(cube);
-
-    cubesList.push(cube);
-    const box = new THREE.Box3().setFromObject(cube);
-    cubeBBox.push(box);
-
-    return cube;
+function updateSuzannes() {
+    suzannes.forEach(sz => {
+        sz.position.add(sz.speed);
+        if (sz.position.x < -10 || sz.position.x > 10) {
+            sz.speed.x = -sz.speed.x;
+        }
+        if (sz.position.y < -10 || sz.position.y > 10) {
+            sz.speed.y = -sz.speed.y;
+        }
+        if (sz.position.z < -10 || sz.position.z > 10) {
+            sz.speed.z = -sz.speed.z;
+        }
+    })
+    
 }
+
 
 function addSuzanne(px: number, py: number, pz: number) {
     var colorandom = new THREE.Color(0xffffff);
@@ -110,22 +90,27 @@ function addSuzanne(px: number, py: number, pz: number) {
 
     loader.load('suzanne.glb', function (gltf) {
         suzanne = gltf.scene.children[0];
-
         (suzanne as THREE.Mesh).material = new THREE.MeshStandardMaterial({ color: colorandom });
 
-        suzanne.position.set(px + Math.floor(Math.random() * 6), py + Math.floor(Math.random() * 6), pz + Math.floor(Math.random() * 6));
-        (suzanne as THREE.Mesh).geometry.computeBoundingBox();
+        //Position
+        suzanne.position.set((px - 0.5) * 20, (py - 0.5) * 20, (pz - 0.5) * 20);
 
+        (suzanne as Suzanne).speed = new THREE.Vector3(
+            px * factor - 0.05,
+            py * factor - 0.05,
+            pz * factor - 0.05
+        );
+
+        (suzanne as THREE.Mesh).geometry.computeBoundingBox();
         scene.add(suzanne);
-        suzannes.push((suzanne as THREE.Mesh));
-        suzanneBoxes.push(new THREE.Box3().setFromObject(suzanne));
+        suzannes.push(suzanne as Suzanne);
     });
 
     return suzanne;
 }
 
 function setPickPosition(event: { clientX: number; clientY: number; }) {
-    const pos = { x: 0, y: 0 } as THREE.Vector2 ;
+    const pos = { x: 0, y: 0 } as THREE.Vector2;
     pos.x = (event.clientX / window.innerWidth) * 2 - 1;
     pos.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
@@ -133,3 +118,5 @@ function setPickPosition(event: { clientX: number; clientY: number; }) {
     raycaster.setFromCamera(pos, camera);
 
 }
+
+init();
