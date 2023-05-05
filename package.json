@@ -2,7 +2,7 @@
   "name": "web3d",
   "version": "1.0.0",
   "description": "a project to store my 3d projects using three.js",
-  "main": "main.js",
+  "main": "main.ts",
   "scripts": {
     "dev": "vite"
   },

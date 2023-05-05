@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
-import { addControls, addEnvironment, camera, render, renderer, scene } from './setup';
+import { addControls, addEnvironment, camera, render, renderer, scene } from '../setup';
 
 let bones = new Map<string, Array<THREE.Object3D | undefined>>();
 
