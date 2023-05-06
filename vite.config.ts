@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-    base: "Web3D",
+    base: "/Web3D",
 });
