@@ -4,7 +4,9 @@
   "description": "a project to store my 3d projects using three.js",
   "main": "main.ts",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "repository": {
     "type": "git",
