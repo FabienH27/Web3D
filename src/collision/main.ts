@@ -22,13 +22,13 @@ function init() {
 
     addControls();
 
-    for (let index = 0; index < 50; index++) {
+    for (let index = 0; index < 3; index++) {
         addSuzanne(Math.random(), Math.random(), Math.random());
     }
 
-    const area = new THREE.Mesh(new THREE.BoxGeometry(22,22,22));
+    // const area = new THREE.Mesh(new THREE.BoxGeometry(22,22,22));
 
-    scene.add(new THREE.BoxHelper(area, 0xffff00))
+    // scene.add(new THREE.BoxHelper(area, 0xffff00))
 
     animate();
 
@@ -49,30 +49,41 @@ function animate() {
 
     for (let i = 0; i < suzannes.length; i++) {
         const cubeA: Suzanne = suzannes[i];
-        for (let j = i + 1; j < suzannes.length; j++) {
-            const cubeB: Suzanne = suzannes[j];
-            const boxA: THREE.Box3 = new THREE.Box3().setFromObject(cubeA);
-            const boxB: THREE.Box3 = new THREE.Box3().setFromObject(cubeB);
-            if (boxA.intersectsBox(boxB)) {
-                cubeA.speed.multiplyScalar(-1);
-                cubeB.speed.multiplyScalar(-1);
-            }
-        }
+
+        const quaternion = new THREE.Quaternion();
+
+        // quaternion.setFromAxisAngle(new THREE.Vector3(1,1,1), Math.PI * 0.01);
+        
+        // cubeA.translateOnAxis(new THREE.Vector3(1,0,0), 0.01);
+        // cubeA.applyQuaternion(quaternion);
+
+
+        // for (let j = i + 1; j < suzannes.length; j++) {
+        //     const cubeB: Suzanne = suzannes[j];
+        //     const boxA: THREE.Box3 = new THREE.Box3().setFromObject(cubeA);
+        //     const boxB: THREE.Box3 = new THREE.Box3().setFromObject(cubeB);
+        //     if (boxA.intersectsBox(boxB)) {
+        //         cubeA.speed.multiplyScalar(-1);
+        //         cubeB.speed.multiplyScalar(-1);
+        //     }
+        // }
     }
 
     renderer.render(scene, camera);
 }
 
 function updateSuzannes() {
+    const bb_coordinates = 10;
+
     suzannes.forEach(sz => {
         sz.position.add(sz.speed);
-        if (sz.position.x < -10 || sz.position.x > 10) {
+        if (sz.position.x < -bb_coordinates || sz.position.x > bb_coordinates) {
             sz.speed.x = -sz.speed.x;
         }
-        if (sz.position.y < -10 || sz.position.y > 10) {
+        if (sz.position.y < -bb_coordinates || sz.position.y > bb_coordinates) {
             sz.speed.y = -sz.speed.y;
         }
-        if (sz.position.z < -10 || sz.position.z > 10) {
+        if (sz.position.z < -bb_coordinates || sz.position.z > bb_coordinates) {
             sz.speed.z = -sz.speed.z;
         }
     })
