@@ -10,9 +10,9 @@ interface Suzanne extends THREE.Mesh {
 }
 
 let suzannes: Suzanne[] = [];
-let lights : THREE.PointLight[] = [];
+let lights: THREE.PointLight[] = [];
 
-const lightLeft = new THREE.PointLight(0xff0000, 0.2,100);
+const lightLeft = new THREE.PointLight(0xff0000, 0.2, 100);
 lightLeft.castShadow = true;
 
 window.addEventListener('resize', onWindowResize);
@@ -26,35 +26,33 @@ function init() {
     }
     const lightRight = lightLeft.clone();
 
-    lightLeft.position.set(-20,0,0);
-    lightRight.position.set(20,0,0);
+    const lightTop = lightLeft.clone();
+
+    lightLeft.position.set(-20, 0, 0);
+    lightRight.position.set(20, 0, 0);
+    lightTop.position.set(0, 20, 0);
+
+    const pointLightHelper = new THREE.PointLightHelper(lightTop, 1);
+    scene.add(pointLightHelper);
+
     scene.add(lightLeft);
-
     scene.add(lightRight);
+    scene.add(lightTop);
 
-    lights = lights.concat([lightLeft, lightRight]);
+    lights = [lightLeft, lightRight, lightTop];
 
     play('/sound/song.mp3');
 
     animate();
 }
 
-var audio = document.getElementById("audio") as any;
+var audio = document.getElementById("audio") as HTMLAudioElement;
 let analyser: any;
 let dataArray = new Uint8Array();
 function play(e: any) {
+
     audio.src = e; // URL.createObjectURL(e);
     audio.load();
-    var promise = audio.play();
-
-    if (promise !== undefined) {
-        promise.then((_: any) => {
-            audio.play();
-        }).catch((err: any) => {
-            audio.play();
-        });
-    }
-
     audio.play();
 
     var context = new AudioContext();
@@ -65,6 +63,7 @@ function play(e: any) {
     analyser.fftSize = 512;
     var bufferLength = analyser.frequencyBinCount;
     dataArray = new Uint8Array(bufferLength);
+
 }
 
 function onWindowResize() {
@@ -86,12 +85,11 @@ function animate() {
     const averageHigher = upperHalfArray.reduce((p, c) => p + c, 0) / upperHalfArray.length;
 
     const avg = (averageHigher + averageLower) / 2;
-    const pos = avg / 50; 
-
+    const pos = avg / 50;
 
     for (let i = 0; i < suzannes.length; i++) {
         const cubeA: Suzanne = suzannes[i];
-        
+
         const scale = pos / 1.2;
         cubeA.scale.set(scale, scale, scale);
 
@@ -99,7 +97,7 @@ function animate() {
     }
 
     lights.forEach(l => {
-        l.intensity = (pos * pos) * 50; 
+        l.intensity = (pos * pos) * 10;
     });
 
     renderer.render(scene, camera);
