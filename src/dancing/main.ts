@@ -32,9 +32,6 @@ function init() {
     lightRight.position.set(20, 0, 0);
     lightTop.position.set(0, 20, 0);
 
-    const pointLightHelper = new THREE.PointLightHelper(lightTop, 1);
-    scene.add(pointLightHelper);
-
     scene.add(lightLeft);
     scene.add(lightRight);
     scene.add(lightTop);
@@ -53,7 +50,7 @@ function play(e: any) {
 
     audio.src = e; // URL.createObjectURL(e);
     audio.load();
-    audio.play();
+    // audio.play();
 
     var context = new AudioContext();
     var src = context.createMediaElementSource(audio);
